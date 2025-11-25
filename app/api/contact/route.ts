@@ -67,9 +67,30 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true, data }, { status: 200 });
     } catch (error) {
         console.error('Error sending email:', error);
+
+        // Extract error message
+        let errorMessage = 'Failed to send email. Please try again.';
+
+        if (error instanceof Error) {
+            errorMessage = error.message;
+            console.error('Error details:', {
+                message: error.message,
+                stack: error.stack,
+                name: error.name
+            });
+        }
+
         return NextResponse.json(
-            { error: 'Failed to send email. Please try again.' },
-            { status: 500 }
+            {
+                error: errorMessage,
+                details: process.env.NODE_ENV === 'development' ? String(error) : undefined
+            },
+            {
+                status: 500,
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            }
         );
     }
 }
